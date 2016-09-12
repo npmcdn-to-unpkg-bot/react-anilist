@@ -11,7 +11,7 @@ _ = require \underscore
 sodom = require \sodom.ls
 Velocity = require \velocity-animate
 
-const test-anim-duration = 1000
+const test-anim-duration = 700
 
 AniTestItem = React.createClass do
   should-component-update: (np) -> @props.item != np.item
@@ -23,7 +23,7 @@ AniTestItem = React.createClass do
 
   make-move-animation: (node) ->
     new-frame = @get-frame!
-    old-frame = <[left top width height]>.map ((node.style.) >> (parseInt<|))
+    old-frame = <[left top width height]>.map ((node.style.) >> parseInt)
     return if (new-frame.every (v, idx) -> old-frame[idx] == v)
 
     Velocity node, {[k, new-frame[i]] for k, i in <[left top width height]>}, do
@@ -35,13 +35,15 @@ AniTestItem = React.createClass do
       duration: test-anim-duration
 
   get-frame: ->
-    node = sodom @refs.root
-    [(.left!), (.top!), (.width!), (.height!)].map (node|>)
+    {root-dom} = @
+    [(.left!), (.top!), (.width!), (.height!)].map (root-dom |>)
 
-  clone-dom: -> @refs.root.clone-node true
+  clone-dom: -> @root-dom.node.clone-node true
 
   render: ->
-    div ref:\root, class-name:\item,
+    div do
+      ref: !~> @root-dom = sodom it
+      class-name:\item
       div class-name:\inner,
         div null, @props.item.get \title
 

@@ -14,8 +14,8 @@ module.exports = React.create-class do
   display-name: \AniList
 
   animations-done: (ctx) ->
-    @static-dom.style.opacity = 1
-    sodom @dynamic-dom .clear!
+    @static-dom.node.style.opacity = 1
+    @dynamic-dom.clear!
     @ctx = null
     if @next-items?
       @next-items = null
@@ -34,11 +34,11 @@ module.exports = React.create-class do
     node = c.clone-dom!
     old-frame = c.get-frame!
 
-    @clones.set id, node
+    @ctx.clones.set id, node
     node.style <<< {[k, "#{old-frame[i]}px"] for k, i in <[left top width height]>} <<< do
       position: \absolute
 
-    @dynamic-dom.append-child node
+    @dynamic-dom.node.append-child node
     node
 
   _items-received: (items) ->
@@ -53,66 +53,51 @@ module.exports = React.create-class do
         removed: (removed = okeys.subtract nkeys)
         moved: (nkeys.subtract added .subtract removed)
         animations-count: 0
+        clones: Map!as-mutable!
 
         before: !~>
+          @dynamic-dom?clear!
+          @static-dom.node.style.opacity = 0
+
           {removed, moved, added} = @ctx
-
-          sodom @dynamic-dom ?clear!
-
-          @static-dom.style.opacity = 0
-          @clones = Map!as-mutable!
           @children.for-each (c, id) ~> @prepare-node c, id
-
-          @animations = removed.map ~> @children.get it ?make-remove-animation? (@clones.get it)
+          @ctx.animations = removed.map ~> @children.get it .make-remove-animation? (@ctx.clones.get it)
 
         after: !~>
           {added, moved, removed} = @ctx
 
           added.for-each (id) ~> @prepare-node (@children.get id), id
 
-          @animations =
-            @animations
-            .concat do ~>
-              moved
-              .map ~> @children.get it .make-move-animation? (@clones.get it)
-              .filter (?)
-            .concat do
-              added.map ~> @children.get it .make-add-animation? (@clones.get it)
+          @ctx
+            ..animations = ..animations
+            .concat moved.map ~> @children.get it .make-move-animation? (@ctx.clones.get it)
+            .concat added.map ~> @children.get it .make-add-animation? (@ctx.clones.get it)
+            .filter (?)
 
-          @ctx.animations-count += @animations.size
-          @animations.for-each (promise) !~>
-            promise.then bound @, @ctx, (ctx) !->
-              return if ctx != @ctx
-              ctx.animations-count -= 1
-              @animations-done ctx if ctx.animations-count < 1
+            ..animations-count = ..animations.size
+            ..animations.for-each (promise) !~>
+              promise.then bound @, @ctx, (ctx) !->
+                return if ctx != @ctx
+                ctx.animations-count -= 1
+                @animations-done ctx if ctx.animations-count < 1
 
-          if not @animations.size
-            @animations-done @ctx
+            @animations-done .. if not ..animations.size
       @set-state items:items
 
-  component-will-mount: ->
-    @_items-received @props.items
+  component-will-mount: -> @_items-received @props.items
+  component-will-receive-props: (np) !-> @_items-received np.items if np.items != @props.items != @next-items
 
-  component-will-receive-props: (np) ->
-    if np.items != @props.items != @next-items
-      @_items-received np.items
-
-  component-will-update: ->
-    @ctx?before?!
-    @ctx?before = null
-
-  component-did-update: ->
-    @ctx?after?!
-    @ctx?after = null
+  component-will-update: !-> @ctx?before &&= (@ctx.before!; null)
+  component-did-update: !-> @ctx?after &&= (@ctx.after!; null)
 
   render: ->
     {props:{component}} = @
     {items} = @state
 
-    div className:\ani-list,
+    div class-name:\ani-list,
       div do
-        className:\static
-        ref:(!~> @static-dom = it)
+        class-name:\static
+        ref: !~> @static-dom = sodom it
         items?map (i) ~>
           id = i.get \id
           create-element do
@@ -120,4 +105,4 @@ module.exports = React.create-class do
             key:id
             item:i
             ref: bound @, id, (id, component) !-> if component? => @children.set id, component else @children.remove id
-      div className:\dynamic, ref: ~> @dynamic-dom = it
+      div className:\dynamic, ref: ~> @dynamic-dom = sodom it
