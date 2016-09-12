@@ -1,2 +1,3 @@
-module.exports =
-  Anilist: require \Anilist
+require! \./Anilist
+
+module.exports = {Anilist}

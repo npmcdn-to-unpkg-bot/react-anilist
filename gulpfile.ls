@@ -16,11 +16,11 @@ require! \run-sequence
 source = require \vinyl-source-stream
 require! \watchify
 
-config = 
+config =
     minify: process.env.MINIFY == \true
 
 # stylus-config :: Boolean -> object
-stylus-config = (minify) -> 
+stylus-config = (minify) ->
     use: nib!
     import: <[nib]>
     compress: minify
@@ -34,7 +34,7 @@ gulp.task \build:examples:styles, ->
     .pipe gulp-connect.reload!
 
 # watch all the style files both in public/components directory & themes directory
-gulp.task \watch:examples:styles, -> 
+gulp.task \watch:examples:styles, ->
     gulp.watch <[./public/components/*.styl ./themes/*.styl]>, <[build:examples:styles]>
 
 # create a browserify Bundler
@@ -85,7 +85,7 @@ gulp.task \build:themes, ->
     .pipe gulp-stylus (stylus-config config.minify)
     .pipe gulp.dest \./themes
 
-gulp.task \watch:themes, -> 
+gulp.task \watch:themes, ->
     gulp.watch <[./themes/*.styl]>, <[build:themes]>
 
 gulp.task \build:src:scripts, ->
@@ -98,7 +98,7 @@ gulp.task \watch:src:scripts, ->
 
 # create-standalone-build :: Boolean -> {file :: String, directory :: String} -> Stream
 create-standalone-build = (minify, {file, directory}) ->
-    browserify standalone: \react-selectize, debug: false
+    browserify standalone: \react-anilist, debug: false
         .add <[./src/index.js]>
         .exclude \prelude-ls
         .exclude \prelude-extension
@@ -115,18 +115,11 @@ create-standalone-build = (minify, {file, directory}) ->
         .pipe gulp.dest directory
 
 gulp.task \dist, <[build:src:scripts]>, ->
-    # create dist/index.js
     <- create-standalone-build false, {file: \index.js, directory: \./dist} .on \finish
-
-    # create dist/index.min.js
     <- create-standalone-build true, {file: \index.min.js, directory: \./dist} .on \finish
-
-    # create dist/index.css
     gulp.src <[./themes/index.styl]>
         .pipe gulp-stylus (stylus-config false)
         .pipe gulp.dest \./dist
-
-    # create dist/index.min.css
     gulp.src <[./themes/index.styl]>
         .pipe gulp-stylus (stylus-config true)
         .pipe gulp-rename (path) -> path.extname = \.min.css
@@ -142,10 +135,10 @@ gulp.task \build:src, <[build:themes build:src:scripts]>
 gulp.task \watch:src, <[watch:themes watch:src:scripts]>
 gulp.task \build:examples, <[build:examples:styles build:examples:scripts]>
 gulp.task \watch:examples, <[watch:examples:styles watch:examples:scripts]>
-gulp.task \default, -> run-sequence do 
+gulp.task \default, -> run-sequence do
     \build:src
     \watch:src
-    \build:examples:styles 
-    \watch:examples:styles 
+    \build:examples:styles
+    \watch:examples:styles
     \build-and-watch:examples:scripts
-    \dev:server 
+    \dev:server

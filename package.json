@@ -1,6 +1,6 @@
 {
   "name": "react-anilist",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Animated cusomizable React-container, which animates any structural changes",
   "main": "src/index.js",
   "scripts": {
