@@ -11,7 +11,7 @@ _ = require \underscore
 sodom = require \sodom.ls
 Velocity = require \velocity-animate
 
-const test-anim-duration = 250
+const test-anim-duration = 1000
 
 AniTestItem = React.createClass do
   mixins: [AniItemMixin]
@@ -20,28 +20,25 @@ AniTestItem = React.createClass do
 
   make-add-animation: (node) ->
     node.style.opacity = 0
-    @props.ani-host.push-animation do
-      Velocity node, {opacity:1}, do
-        duration: test-anim-duration
+    Velocity node, {opacity:1}, do
+      duration: test-anim-duration
 
   make-move-animation: (node) ->
     new-frame = @get-frame!
     old-frame = <[left top width height]>.map ((node.style.) >> (parseInt<|))
     return if (new-frame.every (v, idx) -> old-frame[idx] == v)
 
-    @props.ani-host.push-animation do
-      Velocity node, {[k, new-frame[i]] for k, i in <[left top width height]>}, do
-        duration: test-anim-duration
+    Velocity node, {[k, new-frame[i]] for k, i in <[left top width height]>}, do
+      duration: test-anim-duration
 
   make-remove-animation: (node) ->
     node.style.opacity = 1
-    @props.ani-host.push-animation do
-      Velocity node, {opacity:0}, do
-        duration: test-anim-duration
+    Velocity node, {opacity:0}, do
+      duration: test-anim-duration
 
   get-frame: ->
-    {root} = @refs
-    [sodom.left, sodom.top, sodom.width, sodom.height].map (root|>)
+    node = sodom @refs.root
+    [(.left!), (.top!), (.width!), (.height!)].map (node|>)
 
   clone-dom: -> @refs.root.clone-node true
 
@@ -85,8 +82,8 @@ App = React.createClass do
 
     <~! @set-state items:Immutable.fromJS ([0 til 10].map -> {id:it, title:"#{it}"})
     do testing = !~>
-      <~! setTimeout _, 250
-      <~! @set-state items:((add1 << shuffle) @state.items)
+      <~! setTimeout _, 1000
+      <~! @set-state items:((shuffle) @state.items)
       console.log 'count:', @state.items.size
       testing!
 

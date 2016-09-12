@@ -1,8 +1,13 @@
-module.exports =
-  top: -> it.offset-top ? it.client-top
-  left: -> it.offset-left ? it.client-left
-  height: -> it.offset-height ? it.client-height
-  width: -> it.offset-width ? it.client-width
-  bottom: -> (@top it) + (@height it)
-  right: -> (@left it) + (@width it)
-  clone: -> it.clone-node true
+module.exports = do ->
+  class SodomNode
+    (@node) ->
+    top: -> @node.offset-top ? @node.client-top
+    left: -> @node.offset-left ? @node.client-left
+    height: -> @node.offset-height ? @node.client-height
+    width: -> @node.offset-width ? @node.client-width
+    bottom: -> @top! + @height!
+    right: -> @left! + @width!
+    clone: -> @node.clone-node true
+    clear: -> Array::slice.apply @node.children .map @node~remove-child
+
+  (node) -> new SodomNode node

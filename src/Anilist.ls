@@ -15,7 +15,7 @@ module.exports = React.create-class do
 
   animations-done: (ctx) ->
     @static-dom.style.opacity = 1
-    Array::slice.apply @dynamic-dom.children .map @dynamic-dom~remove-child
+    sodom @dynamic-dom .clear!
     @ctx = null
     if @next-items?
       @next-items = null
@@ -25,12 +25,7 @@ module.exports = React.create-class do
     @children = Map!as-mutable!
     @ani-host =
       register: (id, component) !~> if component? => @children.set id, component else @children.remove id
-      push-animation: (promise) !~>
-        @ctx.animations-count += 1
-        promise.then bound @, @ctx, (ctx, [node]) ->
-          return if ctx != @ctx
-          ctx.animations-count -= 1
-          @animations-done ctx if ctx.animations-count < 1
+      push-animation: (promise) ~> promise
     items: null
 
   component-did-mount: !->
@@ -51,6 +46,7 @@ module.exports = React.create-class do
         removed: (removed = okeys.subtract nkeys)
         moved: (nkeys.subtract added .subtract removed)
         animations-count: 0
+
         before: !~>
           {removed, moved, added} = @ctx
 
@@ -69,21 +65,31 @@ module.exports = React.create-class do
           # @origins = moved.union removed .map (~> [it, @children.get it .get-frame?!]) |> Map
           @remove-animations = removed.map ~> (@children.get it)?make-remove-animation? (@clones.get it)
         after: !~>
-          try
-            {added, moved, removed} = @ctx
+          {added, moved, removed} = @ctx
 
-            @move-animations = moved.map ~> @children.get it .make-move-animation? (@clones.get it)
-            added.for-each (id) ~>
-              c = @children.get id
-              @clones.set id, (node = c.clone-dom!)
-              node
-                @dynamic-dom.append-child ..
-                old-frame = c.get-frame!
-                ..style <<< {[k, "#{old-frame[i]}px"] for k, i in <[left top width height]>} <<< do
-                  position: \absolute
-            added.map (~> @children.get it .make-add-animation? (@clones.get it))
-          finally
-            @animations-done @ctx if @ctx.animations-count < 1
+          @move-animations = do
+            moved
+            .map ~> @children.get it .make-move-animation? (@clones.get it)
+            .filter -> it?
+          added.for-each (id) ~>
+            c = @children.get id
+            @clones.set id, (node = c.clone-dom!)
+            node
+              @dynamic-dom.append-child ..
+              old-frame = c.get-frame!
+              ..style <<< {[k, "#{old-frame[i]}px"] for k, i in <[left top width height]>} <<< do
+                position: \absolute
+          @added-animations = added.map ~> @children.get it .make-add-animation? (@clones.get it)
+          animations = @move-animations.concat @added-animations .concat @remove-animations .filter (?)
+          @ctx.animations-count += animations.size
+          animations.for-each (promise) !~>
+            promise.then bound @, @ctx, (ctx) !->
+              return if ctx != @ctx
+              ctx.animations-count -= 1
+              @animations-done ctx if ctx.animations-count < 1
+
+          if not animations.size
+            @animations-done @ctx
       @set-state items:items
 
   component-will-mount: ->
