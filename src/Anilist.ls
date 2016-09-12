@@ -23,9 +23,6 @@ module.exports = React.create-class do
 
   get-initial-state: ->
     @children = Map!as-mutable!
-    @ani-host =
-      register: (id, component) !~> if component? => @children.set id, component else @children.remove id
-      push-animation: (promise) ~> promise
     items: null
 
   component-did-mount: !->
@@ -33,11 +30,21 @@ module.exports = React.create-class do
       @next-items = null
       @_items-received that
 
+  prepare-node: (c, id) ->
+    node = c.clone-dom!
+    old-frame = c.get-frame!
+
+    @clones.set id, node
+    node.style <<< {[k, "#{old-frame[i]}px"] for k, i in <[left top width height]>} <<< do
+      position: \absolute
+
+    @dynamic-dom.append-child node
+    node
+
   _items-received: (items) ->
     return if items == (old-items = @state.items)
     old-items ?= List!
     if @ctx? or not @is-mounted!
-      console.log 'scheduling'
       @next-items = items
     else
       [nkeys, okeys] = [items, old-items].map ((.map (.get \id)) >> Set)
@@ -50,45 +57,36 @@ module.exports = React.create-class do
         before: !~>
           {removed, moved, added} = @ctx
 
-          Array::slice.apply (@dynamic-dom?children ? []) .for-each (c) -> c.parent-node?remove-child c
+          sodom @dynamic-dom ?clear!
 
           @static-dom.style.opacity = 0
           @clones = Map!as-mutable!
-          @children.for-each (c, id) ~>
-            @clones.set id, (node = c.clone-dom!)
-            node
-              @dynamic-dom.append-child ..
-              old-frame = c.get-frame!
-              ..style <<< {[k, "#{old-frame[i]}px"] for k, i in <[left top width height]>} <<< do
-                position: \absolute
+          @children.for-each (c, id) ~> @prepare-node c, id
 
-          # @origins = moved.union removed .map (~> [it, @children.get it .get-frame?!]) |> Map
-          @remove-animations = removed.map ~> (@children.get it)?make-remove-animation? (@clones.get it)
+          @animations = removed.map ~> @children.get it ?make-remove-animation? (@clones.get it)
+
         after: !~>
           {added, moved, removed} = @ctx
 
-          @move-animations = do
-            moved
-            .map ~> @children.get it .make-move-animation? (@clones.get it)
-            .filter -> it?
-          added.for-each (id) ~>
-            c = @children.get id
-            @clones.set id, (node = c.clone-dom!)
-            node
-              @dynamic-dom.append-child ..
-              old-frame = c.get-frame!
-              ..style <<< {[k, "#{old-frame[i]}px"] for k, i in <[left top width height]>} <<< do
-                position: \absolute
-          @added-animations = added.map ~> @children.get it .make-add-animation? (@clones.get it)
-          animations = @move-animations.concat @added-animations .concat @remove-animations .filter (?)
-          @ctx.animations-count += animations.size
-          animations.for-each (promise) !~>
+          added.for-each (id) ~> @prepare-node (@children.get id), id
+
+          @animations =
+            @animations
+            .concat do ~>
+              moved
+              .map ~> @children.get it .make-move-animation? (@clones.get it)
+              .filter (?)
+            .concat do
+              added.map ~> @children.get it .make-add-animation? (@clones.get it)
+
+          @ctx.animations-count += @animations.size
+          @animations.for-each (promise) !~>
             promise.then bound @, @ctx, (ctx) !->
               return if ctx != @ctx
               ctx.animations-count -= 1
               @animations-done ctx if ctx.animations-count < 1
 
-          if not animations.size
+          if not @animations.size
             @animations-done @ctx
       @set-state items:items
 
@@ -102,12 +100,13 @@ module.exports = React.create-class do
   component-will-update: ->
     @ctx?before?!
     @ctx?before = null
+
   component-did-update: ->
     @ctx?after?!
     @ctx?after = null
 
   render: ->
-    {props:{component}, ani-host} = @
+    {props:{component}} = @
     {items} = @state
 
     div className:\ani-list,
@@ -120,5 +119,5 @@ module.exports = React.create-class do
             component
             key:id
             item:i
-            ani-host:ani-host
+            ref: bound @, id, (id, component) !-> if component? => @children.set id, component else @children.remove id
       div className:\dynamic, ref: ~> @dynamic-dom = it

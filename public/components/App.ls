@@ -6,7 +6,7 @@ reject, reverse, Str, sort-by, take, unique,  unique-by, values, zip-with} = req
 {render:dom-render} = require \react-dom
 require! \react-tools
 Immutable = require \immutable
-{Anilist, AniItemMixin} = require \index.ls
+{Anilist} = require \index.ls
 _ = require \underscore
 sodom = require \sodom.ls
 Velocity = require \velocity-animate
@@ -14,8 +14,6 @@ Velocity = require \velocity-animate
 const test-anim-duration = 1000
 
 AniTestItem = React.createClass do
-  mixins: [AniItemMixin]
-
   should-component-update: (np) -> @props.item != np.item
 
   make-add-animation: (node) ->
@@ -43,7 +41,9 @@ AniTestItem = React.createClass do
   clone-dom: -> @refs.root.clone-node true
 
   render: ->
-    div ref:\root, @props.item.get \title
+    div ref:\root, class-name:\item,
+      div class-name:\inner,
+        div null, @props.item.get \title
 
 Immutable.List::shuffle = ->
   sz = @size
@@ -80,11 +80,10 @@ App = React.createClass do
         title: @_id++
       ]
 
-    <~! @set-state items:Immutable.fromJS ([0 til 10].map -> {id:it, title:"#{it}"})
+    <~! @set-state items:Immutable.fromJS ([0 til 20].map -> {id:it, title:"#{it}"})
     do testing = !~>
-      <~! setTimeout _, 1000
+      <~! setTimeout _, 2000
       <~! @set-state items:((shuffle) @state.items)
-      console.log 'count:', @state.items.size
       testing!
 
   render: ->

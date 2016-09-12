@@ -10,4 +10,5 @@ module.exports = do ->
     clone: -> @node.clone-node true
     clear: -> Array::slice.apply @node.children .map @node~remove-child
 
-  (node) -> new SodomNode node
+  (node) ->
+    new SodomNode node if node?

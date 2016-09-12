@@ -1,2 +1,34 @@
 @require "../../themes"
 
+*
+  font-family: sans-serif
+
+html,
+body,
+#app > *
+  height: 100%
+
+#app
+  position: fixed
+  right: 5px
+  left: 5px
+  top: 20px
+  bottom: 20px
+
+.item
+  box-sizing: border-box
+
+  width: calc(100% / 7)
+  height: calc(100% / 4)
+  flex: 0 0 100px
+  padding: 4px
+
+  .inner
+    background-color: #ccc
+    width: 100%
+    height: 100%
+    display: flex
+    justify-content: center
+    align-items: center
+    & > *
+      flex: 0 0 auto
