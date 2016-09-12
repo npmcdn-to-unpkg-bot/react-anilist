@@ -12,7 +12,8 @@
   "dependencies": {
     "prelude-extension": "^0.0.13",
     "prelude-ls": "^1.1.1",
-    "tether": "^1.1.1"
+    "tether": "^1.1.1",
+    "velocity-animate": "^1.2"
   },
   "peerDependencies": {
     "react": "^0.14.0 || ^15.0.0",
