@@ -1,3 +1,2 @@
 module.exports =
-  Anilist: require \./Anilist
-  AniItemMixin: require \./AniItemMixin
+  Anilist: require \Anilist
