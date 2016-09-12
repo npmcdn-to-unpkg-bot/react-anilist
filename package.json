@@ -1,6 +1,6 @@
 {
   "name": "react-anilist",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "description": "Animated cusomizable React-container, which animates any structural changes",
   "main": "src/index.js",
   "scripts": {
@@ -13,19 +13,16 @@
     "prelude-extension": "^0.0.13",
     "prelude-ls": "^1.1.1",
     "tether": "^1.1.1",
-    "velocity-animate": "^1.2"
+    "velocity-animate": "^1.2",
+    "immutable": "^3"
   },
   "peerDependencies": {
-    "react": "^0.14.0 || ^15.0.0",
-    "react-addons-css-transition-group": "^0.14.0 || ^15.0.0",
-    "react-addons-shallow-compare": "^0.14.0 || ^15.0.0",
-    "react-dom": "^0.14.0 || ^15.0.0"
+    "react": "^15",
+    "react-dom": "^15"
   },
   "browserify-shim": {
     "prelude-extension": "global:preludeExtension",
     "react": "global:React",
-    "react-addons-css-transition-group": "global:React.addons.CSSTransitionGroup",
-    "react-addons-shallow-compare": "global:React.addons.shallowCompare",
     "react-dom": "global:ReactDOM",
     "tether": "global:Tether"
   },
@@ -54,11 +51,9 @@
     "mocha": "^2.3.3",
     "mocha-lcov-reporter": "^1.0.0",
     "nib": "^1.1.0",
-    "react": "^0.14.0 || ^15.0.0",
-    "react-addons-css-transition-group": "^0.14.0 || ^15.0.0",
-    "react-addons-shallow-compare": "^0.14.0 || ^15.0.0",
-    "react-addons-test-utils": "^0.14.0 || ^15.0.0",
-    "react-dom": "^0.14.0 || ^15.0.0",
+    "react": "^15",
+    "react-addons-test-utils": "^15.0.0",
+    "react-dom": "^15.0.0",
     "react-router": "^1.0.0-rc1",
     "react-tools": "^0.13.3",
     "run-sequence": "^1.1.5",

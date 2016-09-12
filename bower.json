@@ -1,6 +1,6 @@
 {
   "name": "react-anilist",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "homepage": "https://github.com/iagurban/react-anilist",
   "authors": [
     "Igor Gurban <iagurban@gmail.com>"
@@ -18,7 +18,8 @@
   "dependencies": {
     "bower-prelude-ls": "*",
     "prelude-extension": "https://npmcdn.com/prelude-extension@0.0.13/bower.zip",
-    "tether": "~1.1.1"
+    "tether": "~1.1.1",
+    "immutable": "*",
   },
   "moduleType": [
     "amd",
